@@ -1,4 +1,4 @@
 fst
 ===
 
-Web experiments with web for Haxe neko/php
+Web experiments with Haxe neko/php
