@@ -1,4 +1,4 @@
-package log;
+package fst.log;
 
 import haxe.io.Output;
 
@@ -32,7 +32,7 @@ class Log {
         /** Informational: informational messages */
         static public inline var PRI_INFO = 6;
         /** Debug: debug-level messages */
-        static public inline var PRI_INFO = 7;
+        static public inline var PRI_DEBUG = 7;
     /**
     * }
     */
@@ -65,7 +65,7 @@ class Log {
     *
     */
     public function log (priority:Int, message:String) : Void {
-        this._out.writeString(DateTools.format(Date.now(), format) +': $message');
+        this._out.writeString(DateTools.format(Date.now(), '%Y-%m-%d %H:%M:%S') +': $message');
     }//function log()
 
 
@@ -73,8 +73,8 @@ class Log {
     * Log emergency level message
     *
     */
-    public function emerge (message:String) : Void {
-        this.log(PRI_EMERGE, message);
+    public function emerg (message:String) : Void {
+        this.log(PRI_EMERG, message);
     }//function emerge()
 
 
@@ -128,7 +128,7 @@ class Log {
     *
     */
     public function info (message:String) : Void {
-        this.log(PRI_NOTICE, message);
+        this.log(PRI_INFO, message);
     }//function info()
 
 

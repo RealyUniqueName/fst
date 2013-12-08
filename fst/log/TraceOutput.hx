@@ -1,4 +1,4 @@
-package log;
+package fst.log;
 
 import haxe.io.Output;
 
