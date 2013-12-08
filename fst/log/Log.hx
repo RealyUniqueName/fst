@@ -65,7 +65,7 @@ class Log {
     *
     */
     public function log (priority:Int, message:String) : Void {
-        this._out.writeString(DateTools.format(Date.now(), '%Y-%m-%d %H:%M:%S') +': $message');
+        this._out.writeString(DateTools.format(Date.now(), '%Y-%m-%d %H:%M:%S') +': $message\n');
     }//function log()
 
 
