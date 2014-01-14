@@ -8,6 +8,8 @@ package fst.datetime;
 class DateMath {
     /** amount of seconds in one day */
     static public inline var SECONDS_IN_DAY = 86400;
+    /** amount of microseconds in one day */
+    static public inline var MICROSECONDS_IN_DAY = 86400000;
 
 
     /**
@@ -18,7 +20,7 @@ class DateMath {
     *   if date1 = 2013-12-07, date2 = 2013-12-05 returns -2
     */
     static public inline function deltaDays (date1:Date, date2:Date) : Int {
-        return Std.int(date2.getTime() / SECONDS_IN_DAY) - Std.int(date1.getTime() / SECONDS_IN_DAY);
+        return Std.int(date2.getTime() / MICROSECONDS_IN_DAY) - Std.int(date1.getTime() / MICROSECONDS_IN_DAY);
     }//function deltaDays()
 
 
