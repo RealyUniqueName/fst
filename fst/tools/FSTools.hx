@@ -3,6 +3,7 @@ package fst.tools;
 import fst.exception.FSToolsException;
 import sys.FileSystem;
 
+using StringTools;
 
 enum ListDir {
     DirsOnly;
@@ -31,25 +32,36 @@ class FSTools {
     * Get list of files in directory
     *
     */
-    static public function listDir (dir:String, pattern:EReg = null, type:ListDir = null) : Array<String> {
+    static public function listDir (directory:String, pattern:EReg = null, type:ListDir = null, recursive:Bool = false) : Array<String> {
         if( type == null ){
             type = ListDir.All;
         }
-        var files : Array<String> = [];
-        dir = FSTools.ensureSlash(dir);
 
-        for(file in FileSystem.readDirectory(dir)){
-            if( pattern != null && !pattern.match(file) ){
-                continue;
-            }
-            switch(type){
-                case FilesOnly if( !FileSystem.isDirectory(dir + file) ):
-                    files.push(file);
-                case DirsOnly if( FileSystem.isDirectory(dir + file) ):
-                    files.push(file);
-                case All:
-                    files.push(file);
-                case _:
+        directory = FSTools.ensureSlash(directory);
+
+        var files : Array<String> = [];
+        var dirs  : Array<String> = [directory];
+        var dir   : String;
+
+        while( dirs.length > 0 ){
+            dir = dirs.shift();
+            for(file in FileSystem.readDirectory(dir)){
+                if( recursive && FileSystem.isDirectory(dir + file) ){
+                    dirs.push( dir + file + '/' );
+                }
+
+                if( pattern != null && !pattern.match(file) ){
+                    continue;
+                }
+                switch(type){
+                    case FilesOnly if( !FileSystem.isDirectory(dir + file) ):
+                        files.push((recursive ? dir.replace(directory, '') : '') + file);
+                    case DirsOnly if( FileSystem.isDirectory(dir + file) ):
+                        files.push((recursive ? dir.replace(directory, '') : '') + file);
+                    case All:
+                        files.push((recursive ? dir.replace(directory, '') : '') + file);
+                    case _:
+                }
             }
         }
 
