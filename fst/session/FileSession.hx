@@ -186,7 +186,7 @@ class FileSession implements ISession {
         //start garbage collection in 1% of requests
         if( Std.random(100) == 0 ){
             try{
-                //delete outdates session files
+                //delete outdated session files
                 var now : Float = Sys.time();
                 var lifetime : Float = (this.lifetime == 0 ? 24 * 3600 : this.lifetime) * 1000.0;
                 //delete files older than lifetime
