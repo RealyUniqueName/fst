@@ -5,7 +5,7 @@ import haxe.macro.Expr;
 
 /**
 * Several simple tools
-*
+*   If macro functions are used inside of other macro functions they become completely type-unsafe.
 */
 class MathTools {
 
