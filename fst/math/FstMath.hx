@@ -4,16 +4,18 @@ import haxe.macro.Expr;
 
 
 /**
-* Several simple tools
+* Several simple tools.
+*   If result type of function is not specified, then If all arguments of this functions are Int then result will be Int also.
+*   So you don't need to use Std.int() to assign it to int variable.
 *   If macro functions are used inside of other macro functions they become completely type-unsafe.
 */
-class MathTools {
+class FstMath {
 
     /**
     * Make sure provided value does not overflow minimum and maximum allowed values
-    *
+    * It's up to developer to ensure min < max.
     */
-    macro static public function clamp (value:Expr, max:Expr, min:Expr) : Expr {
+    macro static public function clamp (value:Expr, min:Expr, max:Expr) : Expr {
         return macro ($value < $min ? $min : ($value > $max ? $max : $value));
     }//function clamp()
 
@@ -21,6 +23,7 @@ class MathTools {
     /**
     * Get absolute value for provided integer value
     *   Does not check against infinities unlike std lib Math.abs()
+    *
     */
     macro static public function abs (value:Expr) : Expr {
         return macro ($value >= 0 ? $value : -$value);
@@ -28,7 +31,7 @@ class MathTools {
 
 
     /**
-    * Returns the biggest of specified values
+    * Returns the biggest of specified values. Accepts any amount of arguments
     *
     */
     macro static public function max (values:Array<Expr>) : Expr {
@@ -46,7 +49,7 @@ class MathTools {
 
 
     /**
-    * Returns the smallest of specified values
+    * Returns the smallest of specified values. Accepts any amount of arguments
     *
     */
     macro static public function min (values:Array<Expr>) : Expr {
@@ -62,4 +65,26 @@ class MathTools {
         return e;
     }//function min()
 
-}//class MathTools
+
+    /**
+    * Convert degrees to radians
+    *
+    */
+    macro static public function degToRad (deg:ExprOf<Float>) : ExprOf<Float> {
+        var k : Float = Math.PI / 180;
+
+        return macro $deg * $v{k};
+    }//function degToRad()
+
+
+    /**
+    * Convert radians to degrees
+    *
+    */
+    macro static public function radToDeg (rad:ExprOf<Float>) : ExprOf<Float> {
+        var k : Float = 180 / Math.PI;
+
+        return macro $rad * $v{k};
+    }//function radToDeg()
+
+}//class FstMath
