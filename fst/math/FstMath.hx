@@ -15,18 +15,18 @@ class FstMath {
     * Make sure provided value does not overflow minimum and maximum allowed values
     * It's up to developer to ensure min < max.
     */
-    macro static public function clamp (value:Expr, min:Expr, max:Expr) : Expr {
+    macro static public function clamp (value:ExprOf<Float>, min:ExprOf<Float>, max:ExprOf<Float>) : Expr {
         return macro ($value < $min ? $min : ($value > $max ? $max : $value));
     }//function clamp()
 
 
     /**
-    * Get absolute value for provided integer value
+    * Get absolute value
     *   Does not check against infinities unlike std lib Math.abs()
     *
     */
-    macro static public function abs (value:Expr) : Expr {
-        return macro ($value >= 0 ? $value : -$value);
+    macro static public function abs (value:ExprOf<Float>) : Expr {
+        return macro ($value < 0 ? -$value : $value);
     }//function abs()
 
 
@@ -34,7 +34,7 @@ class FstMath {
     * Returns the biggest of specified values. Accepts any amount of arguments
     *
     */
-    macro static public function max (values:Array<Expr>) : Expr {
+    macro static public function max (values:Array<ExprOf<Float>>) : Expr {
         if( values.length == 0 ){
             throw new fst.exception.Exception('At least one argument required');
         }
@@ -52,7 +52,7 @@ class FstMath {
     * Returns the smallest of specified values. Accepts any amount of arguments
     *
     */
-    macro static public function min (values:Array<Expr>) : Expr {
+    macro static public function min (values:Array<ExprOf<Float>>) : Expr {
         if( values.length == 0 ){
             throw new fst.exception.Exception('At least one argument required');
         }
