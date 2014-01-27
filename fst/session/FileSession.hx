@@ -21,7 +21,7 @@ class FileSession implements ISession {
     /** session name */
     public var name (default,null) : String = 's';
     /** session id */
-    public var id (default,null) : String = null;
+    public var id (default,default) : String = null;
     /** amount of seconds till cookie expiration tim */
     public var lifetime (default,null) : Int = 0;
     /** session domain */
@@ -72,7 +72,9 @@ class FileSession implements ISession {
         //already started
         if( this.isActive() ) return;
 
-        this.id = Web.getCookies().get(this.name);
+        if( this.id == null ){
+            this.id = Web.getCookies().get(this.name);
+        }
 
         if( this.id == null ){
             this.id = Guid.string(false);
