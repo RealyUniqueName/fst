@@ -28,7 +28,12 @@ class Exception {
         this.message = message;
         if( stack == null ){
             this.stack = CallStack.callStack();
-            this.stack.splice(-4, 4 - shiftStack);
+            //remove `CallStack.callStack()` from stack
+            this.stack.shift();
+            //remove more if necessary
+            while( shiftStack-- > 0 ){
+                this.stack.shift();
+            }
         }else{
             this.stack = stack;
         }
