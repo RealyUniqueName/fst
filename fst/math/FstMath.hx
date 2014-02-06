@@ -67,6 +67,20 @@ class FstMath {
 
 
     /**
+    * Returns base raised to the power of exp.
+    * Equal to manual writing something like this: value * value * value * ... * value
+    */
+    macro static public function intPow (value:ExprOf<Float>, pow:Int) : Expr {
+        var e : Expr = value;
+        for(i in 0...pow){
+            e = macro $e * $value;
+        }
+
+        return e;
+    }//function pow()
+
+
+    /**
     * Convert degrees to radians
     *
     */
