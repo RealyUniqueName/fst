@@ -34,7 +34,7 @@ class ParsingTools {
     *
     */
     static public function isNotForName (char:String) : Bool {
-        return char.isSpace() || char.isIn('<>?"\'=/');
+        return char.isSpace() || char.isIn('<>!?"\'=/');
     }//function isNotForName()
 
 
