@@ -234,6 +234,7 @@ class TXml {
             c = this.pos._advance(str);
 
             if( c == '?' && this.str.charAt(this.pos.index + 1) == '>' ){
+                pos._advance(this.str);
                 return;
             }
         }
