@@ -62,6 +62,17 @@ class TXmlPos {
 
 
     /**
+    * Revert position infos to specified index
+    *
+    */
+    private inline function _revertTo (str:String, to:Int) : Void {
+        while( this.index > to ){
+            this._revert( str.charAt(this.index) );
+        }
+    }//function _revertTo()
+
+
+    /**
     * Clone current position info
     *
     */
