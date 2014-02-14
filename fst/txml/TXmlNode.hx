@@ -8,8 +8,6 @@ import fst.txml.TXmlAttribute;
 *
 */
 class TXmlNode extends TXmlElement {
-    /** if this instance is used at the moment */
-    private var _isFree : Bool = true;
     /** children nodes */
     private var _children : Array<TXmlNode>;
     /** attributes of this node */

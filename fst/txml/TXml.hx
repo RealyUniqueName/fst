@@ -15,8 +15,15 @@ using fst.txml.ParsingTools;
 
 
 /**
-* Parser
+* (Truncated) XML parser with positons info.
+*   Does not support namespaces. Values of attributes must be enclosed in double quotes.
 *
+* TXml is:
+*   ~4 times slower than std Xml parser on cpp
+*   ~70 times slower on neko
+*   ~5 times slower on flash (tested in 11.2 32bit linux stand alone player)
+*   = on js (tested in Chrome 32.0)
+* But TXml has pos infos and verbose error reporting and behaves identically on all platforms :)
 */
 @:access(fst.txml)
 class TXml {
@@ -424,21 +431,24 @@ class TXml {
             return null;
         }
 
+        //find '='
         c = this._skipSpaces();
         if( c != '=' ){
+            var errPos = this.pos.clone();
             c = (c + this._copyTillSpace()).shorten();
-            throw new TXmlException(this.pos, '"=" expected, but "$c" found', 0, []);
+            throw new TXmlException(errPos, '"=" expected, but "$c" found', 0, []);
         }
 
-        var idx   : Int = pos.index;
-        var value : String = this._findValue();
+        //find value
+        var attrPos : TXmlPos = pos.clone();
+        var value   : String = this._findValue();
         if( value == null ){
-            c = str.substring(idx, pos.index + 1).shorten();
-            this.pos._revertTo(this.str, idx);
-            throw new TXmlException(pos, 'Attribute value expected, but "$c" found', 0, []);
+            c = (str.substring(attrPos.index, pos.index + 1) + this._copyTillSpace()).shorten();
+            throw new TXmlException(attrPos, 'Attribute value expected, but "$c" found', 0, []);
         }
 
         var attr : TXmlAttribute = new TXmlAttribute();
+        attr.pos   = attrPos;
         attr.name  = name;
         attr.value = value;
 
@@ -451,28 +461,21 @@ class TXml {
     *
     */
     private function _findValue () : String {
-        var c     : String;
-        var last  : Int = this.str.length - 1;
-        var begin : Int = -1;
+        var c : String = this._skipSpaces();
+        //wtf is this?
+        if( c != '"' ){
+            return null;
+        }
 
-        //find first double quote
+        var last  : Int = this.str.length - 1;
+        var begin : Int = pos.index;
+
+        //find second double quote
         while( this.pos.index < last ){
             c = this.pos._advance(str);
 
             if( c == '"' ){
-                begin = this.pos.index + 1;
-                break;
-            }
-        }
-
-        //find second double quote
-        if( begin >= 0 ){
-            while( this.pos.index < last ){
-                c = this.pos._advance(str);
-
-                if( c == '"' ){
-                    return this.str.substring(begin, this.pos.index).htmlUnescape();
-                }
+                return this.str.substring(begin, this.pos.index).htmlUnescape();
             }
         }
 

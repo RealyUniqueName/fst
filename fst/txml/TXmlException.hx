@@ -35,7 +35,7 @@ class TXmlException extends Exception {
     */
     override public function toString () : String {
         var original : String = this.message;
-        this.message += ' (Line:${this.pos.line + 1}, pos:${this.pos.lineIndex + 1})';
+        this.message += ' ${this.pos}';
         var str : String = super.toString();
         this.message = original;
 

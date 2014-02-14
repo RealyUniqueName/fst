@@ -86,4 +86,12 @@ class TXmlPos {
         return pos;
     }//function clone()
 
+
+    /**
+    * Get string representation
+    *
+    */
+    public function toString () : String {
+        return '(line:${line + 1}, pos:${index + 1})';
+    }//function toString()
 }//class TXmlPos
