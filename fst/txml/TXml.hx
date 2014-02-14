@@ -360,6 +360,10 @@ class TXml {
         }
         pos._revert(c);
 
+        if( c.isNotForName() ){
+            throw new TXmlException(pos, 'Unexpected "$c"');
+        }
+
         var name : String = this._findName();
         if( name == null ) {
             return null;
