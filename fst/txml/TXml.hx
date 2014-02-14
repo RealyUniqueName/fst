@@ -101,7 +101,9 @@ class TXml {
             //wtf is this?
             if( c != '<' ){
                 this.pos._revert(c);
+                idx = this.pos.index;
                 c = this._copyTillSpace().shorten();
+                this.pos._revertTo(this.str, idx);
                 throw new TXmlException(this.pos, '"<" expected, but "$c" found', 0, []);
 
             //found node start
@@ -166,17 +168,41 @@ class TXml {
         //closing tag
         }else if( c == '>' ){
 
-            //find child nodes
-            var child : TXmlNode = this._parse();
-            while( child != null ){
-                node._children.push(child);
-                child = this._parse();
+            var idx : Int = this.pos.index + 1;
+            c = this._skipSpaces();
+
+            //look for simple text content
+            if( c != '<' ){
+                node.innerText = this.str.substring(idx, pos.index + 1) + this._copyTill('<');
+
+                //check we have anough chars for tag closing
+                if( this.str.length <= this.pos.index + 2 ){
+                    throw new TXmlException(this.pos, '"</${node.name}>" expected, but end of document found', 0, []);
+                }
+                //check tag is closing now
+                c = this.pos._advance(this.str);
+                if( c != '<' || this.str.charAt(this.pos.index + 1) != '/' ){
+                    c = (this.str.substring(this.pos.index) + this._copyTillSpace()).shorten();
+                    throw new TXmlException(this.pos, '"</${node.name}>" expected, but "$c" found', 0, []);
+                }
+                this.pos._revert(c);
+
+            // look for child nodes
+            }else{
+                this.pos._revert(c);
+                //find child nodes
+                var child : TXmlNode = this._parse();
+                while( child != null ){
+                    node._children.push(child);
+                    child = this._parse();
+                }
             }
 
             //look for node closing {
                 c = this._skipSpaces();
-                var idx : Int = this.pos.index;
+                idx = this.pos.index;
 
+                //simple text content?
                 if( c != '<' ){
                     c =  (c + this._copyTillSpace()).shorten();
                     throw new TXmlException(this.pos, '"</${node.name}>" expected, but "$c" found', 0, []);
@@ -349,6 +375,31 @@ class TXml {
 
         return copy;
     }//function _copyTillSpace()
+
+
+    /**
+    * Get a copy of string starting from current pos and ending before next specified character
+    *
+    */
+    private function _copyTill (char:String) : String {
+        var c    : String;
+        var copy : String = '';
+        var last : Int = this.str.length - 1;
+
+        while( this.pos.index < last ){
+            c = this.pos._advance(str);
+
+            //found space character
+            if( c == char ){
+                this.pos._revert(c);
+                break;
+            }else{
+                copy += c;
+            }
+        };
+
+        return copy;
+    }//function _copyTill()
 
 
     /**

@@ -1,6 +1,6 @@
 package fst.txml;
 
-
+using StringTools;
 using fst.txml.MacroTools;
 using fst.txml.ParsingTools;
 

@@ -16,6 +16,8 @@ class TXmlNode extends TXmlElement {
     private var _attributes : Array<TXmlAttribute>;
     /** another storage of the same attributes */
     private var _attrMap : Map<String, TXmlAttribute>;
+    /** if this node contains some text */
+    public var innerText (default,null) : String = null;
 
 
     /**
