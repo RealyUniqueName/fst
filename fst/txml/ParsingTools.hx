@@ -47,4 +47,13 @@ class ParsingTools {
     }//function isForName()
 
 
+    /**
+    * Shorten string
+    *
+    */
+    static public inline function shorten (str:String, length:Int = 10) : String {
+        var nl : Int = str.indexOf('\n');
+        return (nl > 0 && nl < length ? str.substring(0, nl) : str.substr(0, length));
+    }//function shorten()
+
 }//class ParsingTools

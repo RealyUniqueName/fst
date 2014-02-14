@@ -101,7 +101,7 @@ class TXml {
             //wtf is this?
             if( c != '<' ){
                 this.pos._revert(c);
-                c = this._copyTillSpace();
+                c = this._copyTillSpace().shorten();
                 throw new TXmlException(this.pos, '"<" expected, but "$c" found', 0, []);
 
             //found node start
@@ -119,7 +119,7 @@ class TXml {
                 if( nextc == '!' ){
                     c = this.str.substr(idx, 4);
                     if( c != '<!--' ){
-                        c = '<!' + this._copyTillSpace();
+                        c = ('<!' + this._copyTillSpace()).shorten();
                         throw new TXmlException(this.pos, '"<!--" expected, but "$c" found', 0, []);
                     }
                     this._skipComment();
@@ -130,7 +130,7 @@ class TXml {
                     node.pos  = this.pos.clone();
                     node.name = this._findName();
                     if( node.name == null ){
-                        c = this.str.substring(idx, this.pos.index + 1);
+                        c = this.str.substring(idx, this.pos.index + 1).shorten();
                         throw new TXmlException(this.pos, 'Node name expected, but "$c" found', 0, []);
                     }
                     return node;
@@ -177,25 +177,25 @@ class TXml {
                 var idx : Int = this.pos.index;
 
                 if( c != '<' ){
-                    c +=  this._copyTillSpace();
+                    c =  (c + this._copyTillSpace()).shorten();
                     throw new TXmlException(this.pos, '"</${node.name}>" expected, but "$c" found', 0, []);
                 }
                 c = this.pos._advance(str);
                 var name : String = this._findName();
                 if( c != '/' || name != node.name ){
-                    c = this.str.substring(idx, this.pos.index + 1) + this._copyTillSpace();
+                    c = (this.str.substring(idx, this.pos.index + 1) + this._copyTillSpace()).shorten();
                     throw new TXmlException(this.pos, '"</${node.name}>" expected, but "$c" found', 0, []);
                 }
                 c = this._skipSpaces()                ;
                 if( c != '>' ){
-                    c = this.str.substring(idx, this.pos.index + 1) + this._copyTillSpace();
+                    c = (this.str.substring(idx, this.pos.index + 1) + this._copyTillSpace()).shorten();
                     throw new TXmlException(this.pos, '"</${node.name}>" expected, but "$c" found', 0, []);
                 }
             //}
 
         //wtf is this?
         }else{
-            c += this._copyTillSpace();
+            c = (c + this._copyTillSpace()).shorten();
             throw new TXmlException(this.pos, '"</${node.name}>" expected, but "$c" found', 0, []);
         }
 
@@ -367,14 +367,14 @@ class TXml {
 
         c = this._skipSpaces();
         if( c != '=' ){
-            c += this._copyTillSpace();
+            c = (c + this._copyTillSpace()).shorten();
             throw new TXmlException(this.pos, '"=" expected, but "$c" found', 0, []);
         }
 
         var idx   : Int = pos.index;
         var value : String = this._findValue();
         if( value == null ){
-            c = str.substring(idx, pos.index + 1);
+            c = str.substring(idx, pos.index + 1).shorten();
             throw new TXmlException(pos, 'Attribute value expected, but "$c" found', 0, []);
         }
 
