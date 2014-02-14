@@ -15,7 +15,7 @@ class ParsingTools {
     * Check if provided character is one of space characters
     *
     */
-    static public function isSpace (char:String) : Bool {
+    static public function isSpace (char:Int) : Bool {
         return char.isIn(' \n\t\r');
     }//function isSpace()
 
@@ -24,8 +24,8 @@ class ParsingTools {
     * Check if current character represents a new line
     *
     */
-    static public inline function isNL (char:String) : Bool {
-        return char == '\n';
+    static public inline function isNL (char:Int) : Bool {
+        return char == '\n'.code();
     }//function isNL()
 
 
@@ -33,7 +33,7 @@ class ParsingTools {
     * Check if this char can not be contained in name of xml element
     *
     */
-    static public function isNotForName (char:String) : Bool {
+    static public function isNotForName (char:Int) : Bool {
         return char.isSpace() || char.isIn('<>!?"\'=/');
     }//function isNotForName()
 
@@ -42,7 +42,7 @@ class ParsingTools {
     * Check if this char is suitable for name of xml element
     *
     */
-    static public inline function isForName (char:String) : Bool {
+    static public inline function isForName (char:Int) : Bool {
         return !char.isNotForName();
     }//function isForName()
 

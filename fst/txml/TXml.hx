@@ -19,9 +19,9 @@ using fst.txml.ParsingTools;
 *   Does not support namespaces. Values of attributes must be enclosed in double quotes.
 *
 * TXml is:
-*   ~4 times slower than std Xml parser on cpp
-*   ~70 times slower on neko
-*   ~5 times slower on flash (tested in 11.2 32bit linux stand alone player)
+*   ~1.5 times slower than std Xml parser on cpp
+*   ~20 times slower on neko
+*   ~3 times slower on flash (tested in 11.2 32bit linux stand alone player)
 *   = on js (tested in Chrome 32.0)
 * But TXml has pos infos and verbose error reporting and behaves identically on all platforms :)
 */
@@ -31,7 +31,8 @@ class TXml {
     private var str : String;
     /** current position of parser inside that string */
     private var pos : TXmlPos;
-
+    /** last index for iteration over characters in string */
+    private var _lastIdx : Int = 0;
 
     /**
     * Parse provided txml string
@@ -71,6 +72,7 @@ class TXml {
     private function _init (str:String) : Void {
         this.str = str;
         this.pos = new TXmlPos();
+        this._lastIdx = str.length - 1;
 
         this._skipDeclaration();
     }//function _init()
@@ -97,39 +99,37 @@ class TXml {
     */
     private function _findTagStart () : TXmlNode {
         var idx   : Int;
-        var c     : String;
-        var nextc : String;
-        var last  : Int = this.str.length - 1;
+        var c     : Int;
+        var nextc : Int;
 
         //find node start
-        while( this.pos.index < last ){
+        while( this.pos.index < this._lastIdx ){
             c = this._skipSpaces();
 
             //wtf is this?
-            if( c != '<' ){
-                this.pos._revert(c);
+            if( c != '<'.code() ){
+                this._revertPos();
                 idx = this.pos.index;
-                c = this._copyTillSpace().shorten();
-                this.pos._revertTo(this.str, idx);
-                throw new TXmlException(this.pos, '"<" expected, but "$c" found', 0, []);
+                var s : String = this._copyTillSpace().shorten();
+                this._revertPosTo(idx);
+                throw new TXmlException(this.pos, '"<" expected, but "$s" found', 0, []);
 
             //found node start
             }else {
-                nextc = this.str.charAt(this.pos.index + 1);
+                nextc = this.str.fastCodeAt(this.pos.index + 1);
                 idx   = this.pos.index;
 
                 //if this is a closing tag for previous node
-                if( nextc == '/'){
-                    this.pos._revert(c);
+                if( nextc == '/'.code() ){
+                    this._revertPos();
                     return null;
                 }
 
                 //if this is a comment
-                if( nextc == '!' ){
-                    c = this.str.substr(idx, 4);
-                    if( c != '<!--' ){
-                        c = ('<!' + this._copyTillSpace()).shorten();
-                        throw new TXmlException(this.pos, '"<!--" expected, but "$c" found', 0, []);
+                if( nextc == '!'.code() ){
+                    if( this.str.substr(idx, 4) != '<!--' ){
+                        var s : String = ('<!' + this._copyTillSpace()).shorten();
+                        throw new TXmlException(this.pos, '"<!--" expected, but "$s" found', 0, []);
                     }
                     this._skipComment();
 
@@ -139,9 +139,9 @@ class TXml {
                     node.pos  = this.pos.clone();
                     node.name = this._findName();
                     if( node.name == null ){
-                        c = this.str.substring(idx, this.pos.index + 1).shorten();
-                        this.pos._revertTo(this.str, idx);
-                        throw new TXmlException(this.pos, 'Node name expected, but "$c" found', 0, []);
+                        var s : String = this.str.substring(idx, this.pos.index + 1).shorten();
+                        this._revertPosTo(idx);
+                        throw new TXmlException(this.pos, 'Node name expected, but "$s" found', 0, []);
                     }
                     return node;
                 }
@@ -163,40 +163,40 @@ class TXml {
             attr = this._findAttribute();
         }
 
-        var c : String = this._skipSpaces();
+        var c : Int = this._skipSpaces();
 
         //closing node ?
-        if( c == '/' ){
-            c = this.pos._advance(str);
-            if( c != '>' ){
-                throw new TXmlException(this.pos, '">" expected, but "$c" found', 0, []);
+        if( c == '/'.code() ){
+            c = this._advancePos();
+            if( c != '>'.code() ){
+                throw new TXmlException(this.pos, '">" expected, but "' + c.char() +'" found', 0, []);
             }
 
         //closing tag
-        }else if( c == '>' ){
+        }else if( c == '>'.code() ){
 
             var idx : Int = this.pos.index + 1;
             c = this._skipSpaces();
 
             //look for simple text content
-            if( c != '<' ){
-                node.innerText = this.str.substring(idx, pos.index + 1) + this._copyTill('<');
+            if( c != '<'.code() ){
+                node.innerText = this.str.substring(idx, pos.index + 1) + this._copyTill('<'.code());
 
                 //check we have anough chars for tag closing
-                if( this.str.length <= this.pos.index + 2 ){
+                if( this._lastIdx <= this.pos.index + 1 ){
                     throw new TXmlException(this.pos, '"</${node.name}>" expected, but end of document found', 0, []);
                 }
                 //check tag is closing now
-                c = this.pos._advance(this.str);
-                if( c != '<' || this.str.charAt(this.pos.index + 1) != '/' ){
-                    c = (this.str.substring(this.pos.index) + this._copyTillSpace()).shorten();
-                    throw new TXmlException(this.pos, '"</${node.name}>" expected, but "$c" found', 0, []);
+                c = this._advancePos();
+                if( c != '<'.code() || this.str.fastCodeAt(this.pos.index + 1) != '/'.code() ){
+                    var s : String = (c.char() + this._copyTillSpace()).shorten();
+                    throw new TXmlException(this.pos, '"</${node.name}>" expected, but "$s" found', 0, []);
                 }
-                this.pos._revert(c);
+                this._revertPos();
 
             // look for child nodes
             }else{
-                this.pos._revert(c);
+                this._revertPos();
                 //find child nodes
                 var child : TXmlNode = this._parse();
                 while( child != null ){
@@ -210,29 +210,29 @@ class TXml {
                 idx = this.pos.index;
 
                 //simple text content?
-                if( c != '<' ){
-                    c =  (c + this._copyTillSpace()).shorten();
-                    throw new TXmlException(this.pos, '"</${node.name}>" expected, but "$c" found', 0, []);
+                if( c != '<'.code() ){
+                    var s : String = (c.char() + this._copyTillSpace()).shorten();
+                    throw new TXmlException(this.pos, '"</${node.name}>" expected, but "$s" found', 0, []);
                 }
-                c = this.pos._advance(str);
+                c = this._advancePos();
                 var name : String = this._findName();
-                if( c != '/' || name != node.name ){
-                    c = (this.str.substring(idx, this.pos.index + 1) + this._copyTillSpace()).shorten();
-                    this.pos._revertTo(this.str, idx);
-                    throw new TXmlException(this.pos, '"</${node.name}>" expected, but "$c" found', 0, []);
+                if( c != '/'.code() || name != node.name ){
+                    var s : String = (this.str.substring(idx, this.pos.index + 1) + this._copyTillSpace()).shorten();
+                    this._revertPosTo(idx);
+                    throw new TXmlException(this.pos, '"</${node.name}>" expected, but "$s" found', 0, []);
                 }
                 c = this._skipSpaces();
-                if( c != '>' ){
-                    c = (this.str.substring(idx, this.pos.index + 1) + this._copyTillSpace()).shorten();
-                    this.pos._revertTo(this.str, idx);
-                    throw new TXmlException(this.pos, '"</${node.name}>" expected, but "$c" found', 0, []);
+                if( c != '>'.code() ){
+                    var s : String = (this.str.substring(idx, this.pos.index + 1) + this._copyTillSpace()).shorten();
+                    this._revertPosTo(idx);
+                    throw new TXmlException(this.pos, '"</${node.name}>" expected, but "$s" found', 0, []);
                 }
             //}
 
         //wtf is this?
         }else{
-            c = (c + this._copyTillSpace()).shorten();
-            throw new TXmlException(this.pos, '"</${node.name}>" expected, but "$c" found', 0, []);
+            var s : String = (c.char() + this._copyTillSpace()).shorten();
+            throw new TXmlException(this.pos, '"</${node.name}>" expected, but "$s" found', 0, []);
         }
 
         return node;
@@ -244,33 +244,32 @@ class TXml {
     *
     */
     private function _skipDeclaration () : Void {
-        var c    : String;
-        var last : Int = this.str.length - 1;
+        var c    : Int;
 
         //find declaration start
-        while( this.pos.index < last ){
-            c = this.pos._advance(str);
+        while( this.pos.index < this._lastIdx ){
+            c = this._advancePos();
 
             //find '<'
-            if( c == '<' ){
+            if( c == '<'.code() ){
                 //if next character is '?' andvance to the end of declaration
-                if( this.str.charAt(this.pos.index + 1) == '?' ){
+                if( this.str.fastCodeAt(this.pos.index + 1) == '?'.code() ){
                     break;
 
                 //otherwise rollback and continue parsing
                 }else{
-                    this.pos._revert(c);
+                    this._revertPos();
                     return;
                 }
             }
         }
 
         //find declaration end
-        while( this.pos.index < last ){
-            c = this.pos._advance(str);
+        while( this.pos.index < this._lastIdx ){
+            c = this._advancePos();
 
-            if( c == '?' && this.str.charAt(this.pos.index + 1) == '>' ){
-                pos._advance(this.str);
+            if( c == '?'.code() && this.str.fastCodeAt(this.pos.index + 1) == '>'.code() ){
+                this._advancePos();
                 return;
             }
         }
@@ -285,13 +284,12 @@ class TXml {
     *
     */
     private function _findName () : String {
-        var c     : String;
-        var last  : Int = this.str.length - 1;
+        var c     : Int;
         var begin : Int = -1;
 
         //find first character of a name
-        while( this.pos.index < last ){
-            c = this.pos._advance(str);
+        while( this.pos.index < this._lastIdx ){
+            c = this._advancePos();
 
             if( c.isForName() ){
                 begin = this.pos.index;
@@ -301,11 +299,11 @@ class TXml {
 
         //find the rest of a name
         if( begin >= 0 ){
-            while( this.pos.index < last ){
-                c = this.pos._advance(str);
+            while( this.pos.index < this._lastIdx ){
+                c = this._advancePos();
                 //found!
                 if( c.isNotForName() ){
-                    this.pos._revert(c);
+                    this._revertPos();
                     return this.str.substring(begin, this.pos.index + 1);
                 }
             }
@@ -320,12 +318,11 @@ class TXml {
     * Skip space characters and return first non-space character encountered
     *
     */
-    private function _skipSpaces () : String {
-        var c     : String;
-        var last  : Int = this.str.length - 1;
+    private function _skipSpaces () : Int {
+        var c : Int;
 
-        while( this.pos.index < last ){
-            c = this.pos._advance(str);
+        while( this.pos.index < this._lastIdx ){
+            c = this._advancePos();
 
             if( !c.isSpace() ){
                 return c;
@@ -333,7 +330,7 @@ class TXml {
         }
 
         throw new TXmlException(this.pos, 'Unexpected end of document', 0, []);
-        return null;
+        return -1;
     }//function _skipSpaces()
 
 
@@ -342,15 +339,14 @@ class TXml {
     *
     */
     private function _skipComment () : Void {
-        var c     : String;
-        var last  : Int = this.str.length - 1;
+        var c : Int;
 
-        while( this.pos.index < last ){
-            c = this.pos._advance(str);
+        while( this.pos.index < this._lastIdx ){
+            c = this._advancePos();
             //found end of comment
-            if( c == '-' && this.str.substr(this.pos.index, 3) == '-->' ){
-                this.pos._advance(str);
-                this.pos._advance(str);
+            if( c == '-'.code() && this.str.substr(this.pos.index, 3) == '-->' ){
+                this._advancePos();
+                this._advancePos();
                 return;
             }
         }
@@ -365,22 +361,21 @@ class TXml {
     *
     */
     private function _copyTillSpace () : String {
-        var c    : String;
-        var copy : String = '';
-        var last : Int = this.str.length - 1;
+        var c    : Int;
+        var copy : StringBuf = new StringBuf();
 
-        while( this.pos.index < last ){
-            c = this.pos._advance(str);
+        while( this.pos.index < this._lastIdx ){
+            c = this._advancePos();
 
             //found space character
             if( c.isSpace() ){
                 break;
             }else{
-                copy += c;
+                copy.addChar(c);
             }
         };
 
-        return copy;
+        return copy.toString();
     }//function _copyTillSpace()
 
 
@@ -388,24 +383,23 @@ class TXml {
     * Get a copy of string starting from current pos and ending before next specified character
     *
     */
-    private function _copyTill (char:String) : String {
-        var c    : String;
-        var copy : String = '';
-        var last : Int = this.str.length - 1;
+    private function _copyTill (char:Int) : String {
+        var c    : Int;
+        var copy : StringBuf = new StringBuf();
 
-        while( this.pos.index < last ){
-            c = this.pos._advance(str);
+        while( this.pos.index < this._lastIdx ){
+            c = this._advancePos();
 
             //found space character
             if( c == char ){
-                this.pos._revert(c);
+                this._revertPos();
                 break;
             }else{
-                copy += c;
+                copy.addChar(c);
             }
         };
 
-        return copy;
+        return copy.toString();
     }//function _copyTill()
 
 
@@ -414,16 +408,16 @@ class TXml {
     *
     */
     private function _findAttribute () : Null<TXmlAttribute> {
-        var c : String = this._skipSpaces();
+        var c : Int = this._skipSpaces();
         //end of tag ?
         if( c.isIn('/>') ){
-            pos._revert(c);
+            this._revertPos();
             return null;
         }
-        pos._revert(c);
+        this._revertPos();
 
         if( c.isNotForName() ){
-            throw new TXmlException(pos, 'Unexpected "$c"');
+            throw new TXmlException(this.pos, 'Unexpected "' + c.char() + '"');
         }
 
         var name : String = this._findName();
@@ -433,18 +427,18 @@ class TXml {
 
         //find '='
         c = this._skipSpaces();
-        if( c != '=' ){
-            var errPos = this.pos.clone();
-            c = (c + this._copyTillSpace()).shorten();
-            throw new TXmlException(errPos, '"=" expected, but "$c" found', 0, []);
+        if( c != '='.code() ){
+            var errPos : TXmlPos = this.pos.clone();
+            var s : String = (c.char() + this._copyTillSpace()).shorten();
+            throw new TXmlException(errPos, '"=" expected, but "$s" found', 0, []);
         }
 
         //find value
         var attrPos : TXmlPos = pos.clone();
         var value   : String = this._findValue();
         if( value == null ){
-            c = (str.substring(attrPos.index, pos.index + 1) + this._copyTillSpace()).shorten();
-            throw new TXmlException(attrPos, 'Attribute value expected, but "$c" found', 0, []);
+            var s : String = (this.str.substring(attrPos.index, pos.index + 1) + this._copyTillSpace()).shorten();
+            throw new TXmlException(attrPos, 'Attribute value expected, but "$s" found', 0, []);
         }
 
         var attr : TXmlAttribute = new TXmlAttribute();
@@ -461,21 +455,20 @@ class TXml {
     *
     */
     private function _findValue () : String {
-        var c : String = this._skipSpaces();
+        var c : Int = this._skipSpaces();
         //wtf is this?
-        if( c != '"' ){
+        if( c != '"'.code() ){
             return null;
         }
 
-        var last  : Int = this.str.length - 1;
         var begin : Int = pos.index;
 
         //find second double quote
-        while( this.pos.index < last ){
-            c = this.pos._advance(str);
+        while( this.pos.index < this._lastIdx ){
+            c = this._advancePos();
 
-            if( c == '"' ){
-                return this.str.substring(begin, this.pos.index).htmlUnescape();
+            if( c == '"'.code() ){
+                return this.str.substring(begin + 1, this.pos.index).htmlUnescape();
             }
         }
 
@@ -498,5 +491,55 @@ class TXml {
         node._attrMap.set(attr.name, attr);
     }//function _addAttribute()
 
+
+    /**
+    * Advance position infos to the next character of this string
+    *
+    * @return - next character of this string
+    */
+    private function _advancePos () : Int {
+        if( pos.index  >= this._lastIdx ){
+            throw new fst.txml.TXmlException(this.pos, 'Unexpected end of string');
+        }
+
+        var c : Int = this.str.fastCodeAt(this.pos.index + 1);
+
+        if( c.isNL() ){
+            this.pos.line ++;
+            this.pos.lineIndex = 0;
+        }else{
+            this.pos.lineIndex ++;
+        }
+        this.pos.index ++;
+
+        return c;
+    }//function _advancePos()
+
+
+    /**
+    * Revert position
+    *
+    */
+    private function _revertPos () : Void {
+        var char : Int = this.str.fastCodeAt(this.pos.index);
+
+        if( char.isNL() ){
+            this.pos.line --;
+        }
+
+        this.pos.lineIndex --;
+        this.pos.index --;
+    }//function _revertPos()
+
+
+    /**
+    * Revert position infos to specified index
+    *
+    */
+    private inline function _revertPosTo (to:Int) : Void {
+        while( this.pos.index > to ){
+            this._revertPos();
+        }
+    }//function _revertPosTo()
 
 }//class TXml

@@ -27,49 +27,53 @@ class TXmlPos {
     }//function new()
 
 
-    /**
-    * Advance position infos to the next character of this string
-    *
-    * @return - next character of this string
-    */
-    private function _advance (string:String) : String {
-        var c : String = string.charAt(this.index + 1);
+    // /**
+    // * Advance position infos to the next character of this string
+    // *
+    // * @return - next character of this string
+    // */
+    // private function _advance (string:String) : Int {
+    //     if( string.length <= this.index + 1 ){
+    //         throw new fst.txml.TXmlException(this, 'Unexpected end of string');
+    //     }
 
-        if( c.isNL() ){
-            this.line ++;
-            this.lineIndex = 0;
-        }else{
-            this.lineIndex ++;
-        }
-        this.index ++;
+    //     var c : Int = string.fastCodeAt(this.index + 1);
 
-        return c;
-    }//function _advance()
+    //     if( c.isNL() ){
+    //         this.line ++;
+    //         this.lineIndex = 0;
+    //     }else{
+    //         this.lineIndex ++;
+    //     }
+    //     this.index ++;
 
-
-    /**
-    * Revert position
-    *
-    */
-    private function _revert (char:String) : Void {
-        if( char.isNL() ){
-            this.line --;
-        }
-
-        this.lineIndex --;
-        this.index --;
-    }//function _revert()
+    //     return c;
+    // }//function _advance()
 
 
-    /**
-    * Revert position infos to specified index
-    *
-    */
-    private inline function _revertTo (str:String, to:Int) : Void {
-        while( this.index > to ){
-            this._revert( str.charAt(this.index) );
-        }
-    }//function _revertTo()
+    // /**
+    // * Revert position
+    // *
+    // */
+    // private function _revert (char:String) : Void {
+    //     if( char.isNL() ){
+    //         this.line --;
+    //     }
+
+    //     this.lineIndex --;
+    //     this.index --;
+    // }//function _revert()
+
+
+    // /**
+    // * Revert position infos to specified index
+    // *
+    // */
+    // private inline function _revertTo (str:String, to:Int) : Void {
+    //     while( this.index > to ){
+    //         this._revert( str.charAt(this.index) );
+    //     }
+    // }//function _revertTo()
 
 
     /**
