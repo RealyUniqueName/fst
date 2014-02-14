@@ -221,7 +221,7 @@ class TXml {
                     this.pos._revertTo(this.str, idx);
                     throw new TXmlException(this.pos, '"</${node.name}>" expected, but "$c" found', 0, []);
                 }
-                c = this._skipSpaces()                ;
+                c = this._skipSpaces();
                 if( c != '>' ){
                     c = (this.str.substring(idx, this.pos.index + 1) + this._copyTillSpace()).shorten();
                     this.pos._revertTo(this.str, idx);
