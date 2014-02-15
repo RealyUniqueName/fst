@@ -6,7 +6,8 @@ package fst.txml;
 *
 */
 class TXmlElement {
-
+    /** index of this element in a collection of simila elements */
+    private var _idx : Int = -1;
     /** element name */
     public var name (default,null) : String;
     /** position info for this element */

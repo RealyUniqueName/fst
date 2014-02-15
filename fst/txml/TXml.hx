@@ -13,7 +13,6 @@ using fst.txml.MacroTools;
 using fst.txml.ParsingTools;
 
 
-
 /**
 * (Truncated) XML parser with positons info.
 *   Does not support namespaces. Values of attributes must be enclosed in double quotes.
@@ -200,7 +199,8 @@ class TXml {
                 //find child nodes
                 var child : TXmlNode = this._parse();
                 while( child != null ){
-                    node._children.push(child);
+                    child._idx   = node._children.push(child) - 1;
+                    child.parent = node;
                     child = this._parse();
                 }
             }
@@ -487,7 +487,8 @@ class TXml {
             throw new TXmlException(this.pos, 'Duplicated attribute name: "${attr.name}"', 0, []);
         }
 
-        node._attributes.push(attr);
+
+        attr._idx = node._attributes.push(attr);
         node._attrMap.set(attr.name, attr);
     }//function _addAttribute()
 

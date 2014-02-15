@@ -14,8 +14,18 @@ class TXmlNode extends TXmlElement {
     private var _attributes : Array<TXmlAttribute>;
     /** another storage of the same attributes */
     private var _attrMap : Map<String, TXmlAttribute>;
-    /** if this node contains some text */
+    /** if this node contains plain text */
     public var innerText (default,null) : String = null;
+    /** parent node */
+    public var parent (default,null) : TXmlNode;
+    /** get next parent's child */
+    public var nextSibling (get,never) : TXmlNode;
+    /** get previous parent's child */
+    public var previousSibling (get,never) : TXmlNode;
+    /** first child in list of this node */
+    public var firstChild (get,never) : TXmlNode;
+    /** last child in list of this node */
+    public var lastChild (get,never) : TXmlNode;
 
 
     /**
@@ -61,9 +71,7 @@ class TXmlNode extends TXmlElement {
     */
     public function getFirstChild (name:String = null) : Null<TXmlNode> {
         if( name == null ){
-            if( this._children.length > 0 ){
-                return this._children[0];
-            }
+            return this.firstChild;
 
         }else{
             for(i in 0...this._children.length){
@@ -74,7 +82,28 @@ class TXmlNode extends TXmlElement {
         }
 
         return null;
-    }//function getChild()
+    }//function getFirstChild()
+
+
+    /**
+    * Get last child
+    *
+    * @param name - return last child with this name
+    */
+    public function getLastChild (name:String = null) : Null<TXmlNode> {
+        if( name == null ){
+            return this.lastChild;
+
+        }else{
+            for(i in (-this._children.length + 1)...1){
+                if( this._children[-i].name == name ){
+                    return this._children[-i];
+                }
+            }
+        }
+
+        return null;
+    }//function getLastChild()
 
 
     /**
@@ -103,5 +132,41 @@ class TXmlNode extends TXmlElement {
         var attr = this._attrMap.get(name);
         return (attr == null ? null : attr.value);
     }//function getValue()
+
+
+    /**
+    * Getter `nextSibling`.
+    *
+    */
+    private inline function get_nextSibling () : TXmlNode {
+        return (this.parent._children.length > this._idx + 1 ? this.parent._children[this._idx + 1] : null);
+    }//function get_nextSibling
+
+
+    /**
+    * Getter `previousSibling`.
+    *
+    */
+    private inline function get_previousSibling () : TXmlNode {
+        return (this._idx > 0 ? this.parent._children[this._idx - 1] : null);
+    }//function get_previousSibling
+
+
+    /**
+    * Getter `firstChild`.
+    *
+    */
+    private inline function get_firstChild () : TXmlNode {
+        return (this._children.length > 0 ? this._children[0] : null);
+    }//function get_firstChild
+
+
+    /**
+    * Getter `lastChild`.
+    *
+    */
+    private inline function get_lastChild () : TXmlNode {
+        return (this._children.length > 0 ? this._children[ this._children.length - 1 ] : null);
+    }//function get_lastChild
 
 }//class TXmlNode
