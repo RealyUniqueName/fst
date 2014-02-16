@@ -420,7 +420,8 @@ class TXml {
             throw new TXmlException(this.pos, 'Unexpected "' + c.char() + '"');
         }
 
-        var name : String = this._findName();
+        var attrPos : TXmlPos = this.pos.clone();
+        var name    : String = this._findName();
         if( name == null ) {
             return null;
         }
@@ -434,10 +435,10 @@ class TXml {
         }
 
         //find value
-        var attrPos : TXmlPos = pos.clone();
+        var idx : Int = this.pos.index;
         var value   : String = this._findValue();
         if( value == null ){
-            var s : String = (this.str.substring(attrPos.index, pos.index + 1) + this._copyTillSpace()).shorten();
+            var s : String = (this.str.substring(idx, pos.index + 1) + this._copyTillSpace()).shorten();
             throw new TXmlException(attrPos, 'Attribute value expected, but "$s" found', 0, []);
         }
 

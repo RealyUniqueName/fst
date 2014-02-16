@@ -8,7 +8,7 @@ using fst.txml.ParsingTools;
 * Various tools for parsing
 *
 */
-@:allow(txml)
+@:allow(fst.txml)
 class ParsingTools {
 
     /**
