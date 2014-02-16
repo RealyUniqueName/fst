@@ -174,14 +174,12 @@ class TXml {
         //closing tag
         }else if( c == '>'.code() ){
 
+            var valuePos : TXmlPos = this.pos.clone();
             var idx : Int = this.pos.index + 1;
             c = this._skipSpaces();
 
             //look for simple text content
             if( c != '<'.code() ){
-                this._advancePos();
-                var valuePos : TXmlPos = this.pos.clone();
-                this._revertPos();
                 node.value = this.str.substring(idx, pos.index + 1) + this._copyTill('<'.code(), false);
                 c = this._advancePos();
 
@@ -193,6 +191,7 @@ class TXml {
                     }
                     c = this.str.fastCodeAt(this.pos.index + 1);
                 }
+                node.value = node.value.htmlUnescape();
                 this._revertPos();
 
                 node.valuePos = valuePos;
@@ -450,7 +449,7 @@ class TXml {
 
         //find value
         if( c == '"'.code() ){
-            value = this._copyTill('"'.code(), false);
+            value = this._copyTill('"'.code(), false).htmlUnescape();
         }
         if( value == null ){
             var s : String = (this.str.substring(idx, pos.index + 1) + this._copyTillSpace()).shorten();
