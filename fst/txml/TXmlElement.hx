@@ -12,6 +12,10 @@ class TXmlElement {
     public var name (default,null) : String;
     /** position info for this element */
     public var pos (default,null) : TXmlPos;
+    /** this is value for attributes  or inner text for nodes with plain text */
+    public var value : String;
+    /** pos infos for value */
+    public var valuePos : TXmlPos;
 
 
     /**

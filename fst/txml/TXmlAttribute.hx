@@ -7,8 +7,5 @@ package fst.txml;
 */
 class TXmlAttribute extends TXmlElement {
 
-    /** attribute value */
-    public var value (default,null) : String;
-
 
 }//class TXmlAttribute

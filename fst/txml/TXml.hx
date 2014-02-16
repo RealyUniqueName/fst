@@ -15,11 +15,11 @@ using fst.txml.ParsingTools;
 
 /**
 * (Truncated) XML parser with positons info.
-*   Does not support namespaces. Values of attributes must be enclosed in double quotes.
+*   Does not support namespaces, CDATA. Values of attributes must be enclosed in double quotes.
 *
 * TXml is:
 *   ~1.5 times slower than std Xml parser on cpp
-*   ~20 times slower on neko
+*   ~10 times slower on neko
 *   ~3 times slower on flash (tested in 11.2 32bit linux stand alone player)
 *   = on js (tested in Chrome 32.0)
 * But TXml has pos infos and verbose error reporting and behaves identically on all platforms :)
@@ -179,19 +179,23 @@ class TXml {
 
             //look for simple text content
             if( c != '<'.code() ){
-                node.innerText = this.str.substring(idx, pos.index + 1) + this._copyTill('<'.code());
-
-                //check we have anough chars for tag closing
-                if( this._lastIdx <= this.pos.index + 1 ){
-                    throw new TXmlException(this.pos, '"</${node.name}>" expected, but end of document found', 0, []);
-                }
-                //check tag is closing now
+                this._advancePos();
+                var valuePos : TXmlPos = this.pos.clone();
+                this._revertPos();
+                node.value = this.str.substring(idx, pos.index + 1) + this._copyTill('<'.code(), false);
                 c = this._advancePos();
-                if( c != '<'.code() || this.str.fastCodeAt(this.pos.index + 1) != '/'.code() ){
-                    var s : String = (c.char() + this._copyTillSpace()).shorten();
-                    throw new TXmlException(this.pos, '"</${node.name}>" expected, but "$s" found', 0, []);
+
+                while( c != '/'.code() ){
+                    node.value += '<' + c.char() + this._copyTill('<'.code(), false);
+                    //check we have enough chars for tag closing
+                    if( this._lastIdx <= this.pos.index ){
+                        throw new TXmlException(this.pos, '"</${node.name}>" expected, but end of document found', 0, []);
+                    }
+                    c = this.str.fastCodeAt(this.pos.index + 1);
                 }
                 this._revertPos();
+
+                node.valuePos = valuePos;
 
             // look for child nodes
             }else{
@@ -382,8 +386,10 @@ class TXml {
     /**
     * Get a copy of string starting from current pos and ending before next specified character
     *
+    * @param char
+    * @param setPosBefore - set final position before that "char" or at that "char"
     */
-    private function _copyTill (char:Int) : String {
+    private function _copyTill (char:Int, setPosBefore:Bool = true) : String {
         var c    : Int;
         var copy : StringBuf = new StringBuf();
 
@@ -392,7 +398,9 @@ class TXml {
 
             //found space character
             if( c == char ){
-                this._revertPos();
+                if( setPosBefore ){
+                    this._revertPos();
+                }
                 break;
             }else{
                 copy.addChar(c);
@@ -434,48 +442,29 @@ class TXml {
             throw new TXmlException(errPos, '"=" expected, but "$s" found', 0, []);
         }
 
+        var idx   : Int = this.pos.index;
+        c = this._skipSpaces();
+
+        var valuePos : TXmlPos = this.pos.clone();
+        var value    : String = null;
+
         //find value
-        var idx : Int = this.pos.index;
-        var value   : String = this._findValue();
+        if( c == '"'.code() ){
+            value = this._copyTill('"'.code(), false);
+        }
         if( value == null ){
             var s : String = (this.str.substring(idx, pos.index + 1) + this._copyTillSpace()).shorten();
             throw new TXmlException(attrPos, 'Attribute value expected, but "$s" found', 0, []);
         }
 
-        var attr : TXmlAttribute = new TXmlAttribute();
-        attr.pos   = attrPos;
-        attr.name  = name;
-        attr.value = value;
+        var attr = new TXmlAttribute();
+        attr.pos      = attrPos;
+        attr.name     = name;
+        attr.value    = value;
+        attr.valuePos = valuePos;
 
         return attr;
     }//function _findAttribute()
-
-
-    /**
-    * Find value for attribute in current position
-    *
-    */
-    private function _findValue () : String {
-        var c : Int = this._skipSpaces();
-        //wtf is this?
-        if( c != '"'.code() ){
-            return null;
-        }
-
-        var begin : Int = pos.index;
-
-        //find second double quote
-        while( this.pos.index < this._lastIdx ){
-            c = this._advancePos();
-
-            if( c == '"'.code() ){
-                return this.str.substring(begin + 1, this.pos.index).htmlUnescape();
-            }
-        }
-
-        //value was not found
-        return null;
-    }//function _findValue()
 
 
     /**
@@ -501,7 +490,7 @@ class TXml {
     */
     private function _advancePos () : Int {
         if( pos.index  >= this._lastIdx ){
-            throw new fst.txml.TXmlException(this.pos, 'Unexpected end of string');
+            throw new fst.txml.TXmlException(this.pos, 'Unexpected end of document');
         }
 
         var c : Int = this.str.fastCodeAt(this.pos.index + 1);

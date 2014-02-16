@@ -1,7 +1,5 @@
 package fst.txml;
 
-import fst.txml.TXmlAttribute;
-
 
 /**
 * Nodes
@@ -14,8 +12,6 @@ class TXmlNode extends TXmlElement {
     private var _attributes : Array<TXmlAttribute>;
     /** another storage of the same attributes */
     private var _attrMap : Map<String, TXmlAttribute>;
-    /** if this node contains plain text */
-    public var innerText (default,null) : String = null;
     /** parent node */
     public var parent (default,null) : TXmlNode;
     /** get next parent's child */
@@ -26,6 +22,8 @@ class TXmlNode extends TXmlElement {
     public var firstChild (get,never) : TXmlNode;
     /** last child in list of this node */
     public var lastChild (get,never) : TXmlNode;
+    /** get amount of children in list of this node */
+    public var numChildren (get,never) : Int;
 
 
     /**
@@ -168,5 +166,14 @@ class TXmlNode extends TXmlElement {
     private inline function get_lastChild () : TXmlNode {
         return (this._children.length > 0 ? this._children[ this._children.length - 1 ] : null);
     }//function get_lastChild
+
+
+    /**
+    * Getter `numChildren`.
+    *
+    */
+    private inline function get_numChildren () : Int {
+        return this._children.length;
+    }//function get_numChildren
 
 }//class TXmlNode
