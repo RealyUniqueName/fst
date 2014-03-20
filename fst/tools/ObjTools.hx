@@ -33,7 +33,7 @@ class ObjTools {
 
             //go deeper for nested properties
             if( Type.typeof(Reflect.field(properties, property)) == TObject ){
-                ObjTools.apply(Reflect.field(obj, property), Reflect.field(properties, property));
+                ObjTools.apply(Reflect.getProperty(obj, property), Reflect.field(properties, property));
 
             //set scalar property
             }else{
