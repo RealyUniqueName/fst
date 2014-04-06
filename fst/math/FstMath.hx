@@ -72,7 +72,7 @@ class FstMath {
     */
     macro static public function intPow (value:ExprOf<Float>, pow:Int) : Expr {
         var e : Expr = value;
-        for(i in 0...pow){
+        for(i in 0...(pow - 1)){
             e = macro $e * $value;
         }
 
