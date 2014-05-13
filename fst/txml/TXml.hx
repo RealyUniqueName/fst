@@ -9,7 +9,7 @@ import haxe.CallStack;
 
 
 using StringTools;
-using fst.txml.MacroTools;
+// using fst.txml.MacroTools;
 using fst.txml.ParsingTools;
 
 
@@ -106,7 +106,7 @@ class TXml {
             c = this._skipSpaces();
 
             //wtf is this?
-            if( c != '<'.code() ){
+            if( c != MacroTools.code('<') ){
                 this._revertPos();
                 idx = this.pos.index;
                 var s : String = this._copyTillSpace().shorten();
@@ -119,13 +119,13 @@ class TXml {
                 idx   = this.pos.index;
 
                 //if this is a closing tag for previous node
-                if( nextc == '/'.code() ){
+                if( nextc == MacroTools.code('/') ){
                     this._revertPos();
                     return null;
                 }
 
                 //if this is a comment
-                if( nextc == '!'.code() ){
+                if( nextc == MacroTools.code('!') ){
                     if( this.str.substr(idx, 4) != '<!--' ){
                         var s : String = ('<!' + this._copyTillSpace()).shorten();
                         throw new TXmlException(this.pos, '"<!--" expected, but "$s" found', 0, []);
@@ -165,26 +165,26 @@ class TXml {
         var c : Int = this._skipSpaces();
 
         //closing node ?
-        if( c == '/'.code() ){
+        if( c == MacroTools.code('/') ){
             c = this._advancePos();
-            if( c != '>'.code() ){
-                throw new TXmlException(this.pos, '">" expected, but "' + c.char() +'" found', 0, []);
+            if( c != MacroTools.code('>') ){
+                throw new TXmlException(this.pos, '">" expected, but "' + MacroTools.char(c) +'" found', 0, []);
             }
 
         //closing tag
-        }else if( c == '>'.code() ){
+        }else if( c == MacroTools.code('>') ){
 
             var valuePos : TXmlPos = this.pos.clone();
             var idx : Int = this.pos.index + 1;
             c = this._skipSpaces();
 
             //look for simple text content
-            if( c != '<'.code() ){
-                node.value = this.str.substring(idx, pos.index + 1) + this._copyTill('<'.code(), false);
+            if( c != MacroTools.code('<') ){
+                node.value = this.str.substring(idx, pos.index + 1) + this._copyTill(MacroTools.code('<'), false);
                 c = this._advancePos();
 
-                while( c != '/'.code() ){
-                    node.value += '<' + c.char() + this._copyTill('<'.code(), false);
+                while( c != MacroTools.code('/') ){
+                    node.value += '<' + MacroTools.char(c) + this._copyTill(MacroTools.code('<'), false);
                     //check we have enough chars for tag closing
                     if( this._lastIdx <= this.pos.index ){
                         throw new TXmlException(this.pos, '"</${node.name}>" expected, but end of document found', 0, []);
@@ -213,19 +213,19 @@ class TXml {
                 idx = this.pos.index;
 
                 //simple text content?
-                if( c != '<'.code() ){
-                    var s : String = (c.char() + this._copyTillSpace()).shorten();
+                if( c != MacroTools.code('<') ){
+                    var s : String = (MacroTools.char(c) + this._copyTillSpace()).shorten();
                     throw new TXmlException(this.pos, '"</${node.name}>" expected, but "$s" found', 0, []);
                 }
                 c = this._advancePos();
                 var name : String = this._findName();
-                if( c != '/'.code() || name != node.name ){
+                if( c != MacroTools.code('/') || name != node.name ){
                     var s : String = (this.str.substring(idx, this.pos.index + 1) + this._copyTillSpace()).shorten();
                     this._revertPosTo(idx);
                     throw new TXmlException(this.pos, '"</${node.name}>" expected, but "$s" found', 0, []);
                 }
                 c = this._skipSpaces();
-                if( c != '>'.code() ){
+                if( c != MacroTools.code('>') ){
                     var s : String = (this.str.substring(idx, this.pos.index + 1) + this._copyTillSpace()).shorten();
                     this._revertPosTo(idx);
                     throw new TXmlException(this.pos, '"</${node.name}>" expected, but "$s" found', 0, []);
@@ -234,7 +234,7 @@ class TXml {
 
         //wtf is this?
         }else{
-            var s : String = (c.char() + this._copyTillSpace()).shorten();
+            var s : String = (MacroTools.char(c) + this._copyTillSpace()).shorten();
             throw new TXmlException(this.pos, '"</${node.name}>" expected, but "$s" found', 0, []);
         }
 
@@ -254,9 +254,9 @@ class TXml {
             c = this._advancePos();
 
             //find '<'
-            if( c == '<'.code() ){
+            if( c == MacroTools.code('<') ){
                 //if next character is '?' andvance to the end of declaration
-                if( this.str.fastCodeAt(this.pos.index + 1) == '?'.code() ){
+                if( this.str.fastCodeAt(this.pos.index + 1) == MacroTools.code('?') ){
                     break;
 
                 //otherwise rollback and continue parsing
@@ -271,7 +271,7 @@ class TXml {
         while( this.pos.index < this._lastIdx ){
             c = this._advancePos();
 
-            if( c == '?'.code() && this.str.fastCodeAt(this.pos.index + 1) == '>'.code() ){
+            if( c == MacroTools.code('?') && this.str.fastCodeAt(this.pos.index + 1) == MacroTools.code('>') ){
                 this._advancePos();
                 return;
             }
@@ -347,7 +347,7 @@ class TXml {
         while( this.pos.index < this._lastIdx ){
             c = this._advancePos();
             //found end of comment
-            if( c == '-'.code() && this.str.substr(this.pos.index, 3) == '-->' ){
+            if( c == MacroTools.code('-') && this.str.substr(this.pos.index, 3) == '-->' ){
                 this._advancePos();
                 this._advancePos();
                 return;
@@ -417,14 +417,14 @@ class TXml {
     private function _findAttribute () : Null<TXmlAttribute> {
         var c : Int = this._skipSpaces();
         //end of tag ?
-        if( c.isIn('/>') ){
+        if( MacroTools.isIn(c, '/>') ){
             this._revertPos();
             return null;
         }
         this._revertPos();
 
         if( c.isNotForName() ){
-            throw new TXmlException(this.pos, 'Unexpected "' + c.char() + '"');
+            throw new TXmlException(this.pos, 'Unexpected "' + MacroTools.char(c) + '"');
         }
 
         var attrPos : TXmlPos = this.pos.clone();
@@ -435,9 +435,9 @@ class TXml {
 
         //find '='
         c = this._skipSpaces();
-        if( c != '='.code() ){
+        if( c != MacroTools.code('=') ){
             var errPos : TXmlPos = this.pos.clone();
-            var s : String = (c.char() + this._copyTillSpace()).shorten();
+            var s : String = (MacroTools.char(c) + this._copyTillSpace()).shorten();
             throw new TXmlException(errPos, '"=" expected, but "$s" found', 0, []);
         }
 
@@ -448,8 +448,8 @@ class TXml {
         var value    : String = null;
 
         //find value
-        if( c == '"'.code() ){
-            value = this._copyTill('"'.code(), false).htmlUnescape();
+        if( c == MacroTools.code('"') ){
+            value = this._copyTill(MacroTools.code('"'), false).htmlUnescape();
         }
         if( value == null ){
             var s : String = (this.str.substring(idx, pos.index + 1) + this._copyTillSpace()).shorten();

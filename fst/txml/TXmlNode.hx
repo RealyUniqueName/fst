@@ -114,6 +114,15 @@ class TXmlNode extends TXmlElement {
 
 
     /**
+    * Get list of attributes in this node
+    *
+    */
+    public inline function getAttributeNames () : Iterator<String> {
+        return this._attrMap.keys();
+    }//function getAttributeNames()
+
+
+    /**
     * Get attribute instance by name
     *
     */
@@ -137,7 +146,11 @@ class TXmlNode extends TXmlElement {
     *
     */
     private inline function get_nextSibling () : TXmlNode {
-        return (this.parent._children.length > this._idx + 1 ? this.parent._children[this._idx + 1] : null);
+        return (
+            this.parent != null && this.parent._children.length > this._idx + 1
+                ? this.parent._children[this._idx + 1]
+                : null
+        );
     }//function get_nextSibling
 
 
@@ -146,7 +159,11 @@ class TXmlNode extends TXmlElement {
     *
     */
     private inline function get_previousSibling () : TXmlNode {
-        return (this._idx > 0 ? this.parent._children[this._idx - 1] : null);
+        return (
+            this.parent != null && this._idx > 0
+                ? this.parent._children[this._idx - 1]
+                : null
+        );
     }//function get_previousSibling
 
 

@@ -1,8 +1,8 @@
 package fst.txml;
 
 using StringTools;
-using fst.txml.MacroTools;
 using fst.txml.ParsingTools;
+
 
 /**
 * Various tools for parsing
@@ -16,7 +16,7 @@ class ParsingTools {
     *
     */
     static public function isSpace (char:Int) : Bool {
-        return char.isIn(' \n\t\r');
+        return MacroTools.isIn(char, ' \n\t\r');
     }//function isSpace()
 
 
@@ -25,7 +25,7 @@ class ParsingTools {
     *
     */
     static public inline function isNL (char:Int) : Bool {
-        return char == '\n'.code();
+        return char == MacroTools.code('\n');
     }//function isNL()
 
 
@@ -34,7 +34,7 @@ class ParsingTools {
     *
     */
     static public function isNotForName (char:Int) : Bool {
-        return char.isSpace() || char.isIn('<>!?"\'=/');
+        return char.isSpace() || MacroTools.isIn(char, '<>!?"\'=/');
     }//function isNotForName()
 
 
