@@ -37,7 +37,7 @@ class Guid {
     */
     macro static private function _rand (count:Int) : Expr {
         return Context.parse(
-            [for(i in 0...count) '_chars.charAt(Std.random(16))'].join(' + '),
+            [for(i in 0...count) '_chars.charAt(Std.random(${Guid._chars.length}))'].join(' + '),
             Context.currentPos()
         );
     }//function _rand()

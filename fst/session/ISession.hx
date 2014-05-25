@@ -10,7 +10,7 @@ interface ISession {
     /** session name */
     public var name (default,null) : String = 's';
     /** session id */
-    public var id (default,null) : String = null;
+    public var id (default,default) : String = null;
     /** lifetime in seconds */
     public var lifetime (default,null) : Int = 0;
     /** session domain */
