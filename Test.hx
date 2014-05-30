@@ -20,7 +20,10 @@ class Test {
     */
     macro static public function initMacro () : Void {
         gen = new CodeGenerator();
-        gen.pattern.addChild = macro parent.addChild(child);
+        gen.addImport('test.XMLNode');
+        gen.patterns.addChild = macro parent.addChild(child);
+        // gen.patterns.create = macro Type.createInstance(Node, []);
+        // gen.patterns.create = macro new Node();
     }//function initMacro()
 
 
@@ -31,7 +34,7 @@ class Test {
     macro static public function build (str:String) : Expr {
         var xml : TXmlNode = fst.txml.TXml.parse(str);
         var e = gen.process(xml);
-
+trace(haxe.macro.ExprTools.toString(e));
         return e;
     }//function build()
 
@@ -48,9 +51,9 @@ class Test {
         // ';
 
         var n = Test.build('
-            <Node>
-                <Node width="12" height="12" />
-            </Node>
+            <XMLNode obj-val="10">
+                <XMLNode width="12" height="12" />
+            </XMLNode>
         ');
         trace(n);
 
@@ -59,41 +62,3 @@ class Test {
 
 }//class Test
 
-
-
-/**
-* Description
-*
-*/
-class Node {
-    /** children */
-    public var children : Array<Node>;
-
-    /**
-    * Description
-    *
-    */
-    public function new () : Void {
-        this.children = [];
-    }//function new()
-
-
-    /**
-    * Description
-    *
-    */
-    public function addChild (node:Node) : Void {
-        this.children.push(node);
-    }//function addChild()
-
-
-    /**
-    * Description
-    *
-    */
-    public function removeChild (node:Node) : Void {
-        this.children.remove(node);
-    }//function removeChild()
-
-
-}//class Node

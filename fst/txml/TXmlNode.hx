@@ -145,7 +145,7 @@ class TXmlNode extends TXmlElement {
     * Getter `nextSibling`.
     *
     */
-    private inline function get_nextSibling () : TXmlNode {
+    private inline function get_nextSibling () : Null<TXmlNode> {
         return (
             this.parent != null && this.parent._children.length > this._idx + 1
                 ? this.parent._children[this._idx + 1]
@@ -158,7 +158,7 @@ class TXmlNode extends TXmlElement {
     * Getter `previousSibling`.
     *
     */
-    private inline function get_previousSibling () : TXmlNode {
+    private inline function get_previousSibling () : Null<TXmlNode> {
         return (
             this.parent != null && this._idx > 0
                 ? this.parent._children[this._idx - 1]
@@ -171,7 +171,7 @@ class TXmlNode extends TXmlElement {
     * Getter `firstChild`.
     *
     */
-    private inline function get_firstChild () : TXmlNode {
+    private inline function get_firstChild () : Null<TXmlNode> {
         return (this._children.length > 0 ? this._children[0] : null);
     }//function get_firstChild
 
@@ -180,7 +180,7 @@ class TXmlNode extends TXmlElement {
     * Getter `lastChild`.
     *
     */
-    private inline function get_lastChild () : TXmlNode {
+    private inline function get_lastChild () : Null<TXmlNode> {
         return (this._children.length > 0 ? this._children[ this._children.length - 1 ] : null);
     }//function get_lastChild
 
